@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Retro Weather App
 
-## Getting Started
+Retro styled weather & comfort dashboard built on Next.js with RetroUI-inspired components.
 
-First, run the development server:
+### Features
+
+- City + Date (next 5 days) forecast using OpenWeather 5-day / 3-hour API.
+- Aggregates selected date into average temperature, humidity & wind.
+- Computes a comfort level score (1–5) with explanation.
+- NASA APOD image for ambience (uses DEMO_KEY if no key set).
+- Simple in-memory caching of API responses.
+
+### Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local
+# edit .env.local with keys
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000/weather
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable            | Required | Description                                  |
+| ------------------- | -------- | -------------------------------------------- |
+| OPENWEATHER_API_KEY | Yes      | OpenWeather API key for forecast requests    |
+| NASA_API_KEY        | No       | NASA API key (APOD). Uses DEMO_KEY if absent |
 
-## Learn More
+### Comfort Levels
 
-To learn more about Next.js, take a look at the following resources:
+1 Very Uncomfortable – extreme conditions
+2 Uncomfortable – outside ideal ranges
+3 Moderate – acceptable but not ideal
+4 Comfortable – good for most activities
+5 Ideal – near optimal
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### API Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+POST /api/weather { location, date }
+GET /api/apod?date=YYYY-MM-DD
 
-## Deploy on Vercel
+### Ideas / Next Steps
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Hourly breakdown timeline
+- Geolocation + reverse geocode
+- Unit switch (metric/imperial)
+- Local history of searches
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License.
