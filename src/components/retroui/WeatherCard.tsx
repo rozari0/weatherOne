@@ -5,12 +5,14 @@ import { computeComfort, ComfortResult } from "@/lib/comfort";
 import { cn } from "@/lib/utils";
 
 export interface CondensedForecastItem {
-  date: string; // YYYY-MM-DD
+  date: string; // normalized YYYY-MM-DD
   avgTemp: number;
   avgHumidity: number;
   avgWind: number;
   description: string;
   icon?: string; // openweather icon id
+  minTemp?: number;
+  maxTemp?: number;
 }
 
 export interface WeatherCardProps {
@@ -18,12 +20,16 @@ export interface WeatherCardProps {
   forecast: CondensedForecastItem | null;
   rawItems?: any[]; // raw list for the date (optional)
   className?: string;
+  assessment?: string;
+  displayDate?: string; // original input format
 }
 
 export const WeatherCard: React.FC<WeatherCardProps> = ({
   location,
   forecast,
   className,
+  assessment,
+  displayDate,
 }) => {
   let comfort: ComfortResult | null = null;
   if (forecast) {
@@ -55,13 +61,21 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
       )}
       {forecast && (
         <div className="grid grid-cols-2 gap-4 text-sm font-mono">
-          <Stat label="Date" value={forecast.date} />
+          <Stat label="Date" value={displayDate || forecast.date} />
           <Stat label="Avg Temp" value={`${forecast.avgTemp.toFixed(1)}°C`} />
           <Stat
             label="Humidity"
             value={`${forecast.avgHumidity.toFixed(0)}%`}
           />
           <Stat label="Wind" value={`${forecast.avgWind.toFixed(1)} m/s`} />
+          {forecast.minTemp !== undefined && forecast.maxTemp !== undefined && (
+            <Stat
+              label="Range"
+              value={`${forecast.minTemp.toFixed(
+                1
+              )}°–${forecast.maxTemp.toFixed(1)}°C`}
+            />
+          )}
           <div className="col-span-2 flex items-center gap-2">
             {forecast.icon && (
               // openweather icon
@@ -75,6 +89,11 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
             )}
             <p className="capitalize">{forecast.description}</p>
           </div>
+          {assessment && (
+            <div className="col-span-2 text-xs font-mono bg-muted/30 border-2 border-black rounded-md p-3 leading-relaxed">
+              {assessment}
+            </div>
+          )}
         </div>
       )}
     </div>
