@@ -1,4 +1,4 @@
-## Retro Weather App
+## Weather One
 
 Retro styled weather & comfort dashboard built on Next.js with RetroUI-inspired components.
 

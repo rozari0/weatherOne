@@ -92,7 +92,7 @@ export default function WeatherPage() {
       <div className="z-10 w-full max-w-xl flex flex-col gap-6">
         <header className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold font-sans tracking-tight">
-            Retro Weather
+            Weather One
           </h1>
           <p className="text-sm text-muted-foreground max-w-prose">
             Enter a city and choose a date (within the next 5 days) to view the
