@@ -45,6 +45,10 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: `fetch failed: ${text}` }, { status: 502 });
     }
     const data = await res.json();
+
+    // Get coordinates for NASA API
+    const lat = data.city?.coord?.lat;
+    const lon = data.city?.coord?.lon;
     if (!data.list) {
       return Response.json({ error: "unexpected response" }, { status: 502 });
     }
@@ -80,6 +84,37 @@ export async function POST(req: NextRequest) {
       windSpeed: condensed.avgWind,
       description: condensed.description,
     });
+
+    // Fetch NASA wind data if coordinates are available
+    let nasaWindData = null;
+    if (lat && lon) {
+      try {
+        console.log('Calling NASA API with:', { latitude: lat, longitude: lon, startDate: date, endDate: date });
+        const nasaRes = await fetch(`${req.nextUrl.origin}/api/nasa-wind`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            latitude: lat,
+            longitude: lon,
+            startDate: date,
+            endDate: date
+          }),
+        });
+        
+        console.log('NASA API response status:', nasaRes.status);
+        
+        if (nasaRes.ok) {
+          nasaWindData = await nasaRes.json();
+          console.log('NASA API success:', nasaWindData);
+        } else {
+          const errorText = await nasaRes.text();
+          console.error('NASA API error:', errorText);
+        }
+      } catch (e) {
+        // NASA data is optional, continue without it
+        console.warn("NASA wind data fetch failed:", e);
+      }
+    }
     // Gemini-generated assessment (fallback to heuristic if Gemini not set / fails)
     let assessment: string;
     const geminiKeyAssess = process.env.GEMINI_API_KEY;
@@ -109,7 +144,7 @@ export async function POST(req: NextRequest) {
       try {
         const promptAssessment = `Provide a concise, friendly single-paragraph weather assessment (<=45 words) with a retro terminal vibe. Data: description=${description}; avgTemp=${condensed.avgTemp}C; minTemp=${condensed.minTemp}C; maxTemp=${condensed.maxTemp}C; humidity=${condensed.avgHumidity}%; wind=${condensed.avgWind} m/s; comfortLevel=${comfort.level} (${comfort.label}). Plain text only.`;
         const aRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKeyAssess}`,
+          `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKeyAssess}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -144,7 +179,7 @@ export async function POST(req: NextRequest) {
         try {
           const planPrompt = `You are a weather-aware activity planner. Evaluate the user's plan for the given forecast and ALWAYS return JSON ONLY (no prose outside JSON).\n\nPlan: "${plan}"\nLocation: ${location}\nDate: ${date}\nWeather: description=${condensed.description}; avgTemp=${condensed.avgTemp}C; minTemp=${condensed.minTemp}C; maxTemp=${condensed.maxTemp}C; humidity=${condensed.avgHumidity}%; wind=${condensed.avgWind} m/s; comfortLevel=${comfort.level} (${comfort.label})\n\nTask: 1) Decide if the plan is suitable given conditions (true/false). Consider precipitation, extremes, wind, humidity, temperature range. 2) Provide a concise reason (<=30 words). 3) Provide 4-6 bullet suggestion strings: if suitable, offer enhancements & backups; if not suitable, offer safe/appealing alternatives with adaptation tips. Each suggestion: 'Activity – Rationale – Weather tip'. 4) JSON schema: {"suitable":boolean,"reason":string,"suggestions":string[]}\nReturn ONLY JSON.`;
           const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -206,6 +241,8 @@ export async function POST(req: NextRequest) {
       planReason,
       assessment,
       displayDate: rawDate, // preserve user-entered format
+      nasaWind: nasaWindData,
+      coordinates: lat && lon ? { latitude: lat, longitude: lon } : null,
     };
     return Response.json({ source: "live", ...payload });
   } catch (e: any) {

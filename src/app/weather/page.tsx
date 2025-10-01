@@ -30,6 +30,19 @@ interface WeatherResponse {
   assessment?: string;
   displayDate?: string;
   planReason?: string;
+  nasaWind?: {
+    success: boolean;
+    data: Array<{
+      date: string;
+      windSpeed: number;
+    }>;
+    averageWindSpeed: number;
+    unit: string;
+  } | null;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  } | null;
 }
 
 export default function WeatherPage() {
@@ -94,11 +107,11 @@ export default function WeatherPage() {
           <h1 className="text-3xl font-bold font-sans tracking-tight">
             Weather One
           </h1>
-          <p className="text-sm text-muted-foreground max-w-prose">
+            <p className="text-sm text-muted-foreground max-w-prose">
             Enter a city and choose a date (within the next 5 days) to view the
             aggregated forecast & a computed comfort level. Powered by
-            OpenWeather + optional NASA APOD imagery.
-          </p>
+            OpenWeather and NASA POWER Analysis Ready Data (ARD) API.
+            </p>
         </header>
         <form
           onSubmit={fetchWeather}
@@ -156,6 +169,7 @@ export default function WeatherPage() {
           forecast={data?.condensed || null}
           assessment={data?.assessment}
           displayDate={data?.displayDate || date}
+          nasaWind={data?.nasaWind || null}
         />
         {data?.plan && (
           <div className="w-full max-w-xl rounded-lg border-2 border-black p-4 shadow bg-card flex flex-col gap-3">

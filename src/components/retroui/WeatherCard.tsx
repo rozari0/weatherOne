@@ -22,6 +22,15 @@ export interface WeatherCardProps {
   className?: string;
   assessment?: string;
   displayDate?: string; // original input format
+  nasaWind?: {
+    success: boolean;
+    data: Array<{
+      date: string;
+      windSpeed: number;
+    }>;
+    averageWindSpeed: number;
+    unit: string;
+  } | null;
 }
 
 export const WeatherCard: React.FC<WeatherCardProps> = ({
@@ -30,6 +39,7 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
   className,
   assessment,
   displayDate,
+  nasaWind,
 }) => {
   let comfort: ComfortResult | null = null;
   if (forecast) {
@@ -68,6 +78,12 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
             value={`${forecast.avgHumidity.toFixed(0)}%`}
           />
           <Stat label="Wind" value={`${forecast.avgWind.toFixed(1)} m/s`} />
+          {nasaWind?.success && (
+            <Stat 
+              label="NASA Wind" 
+              value={`${nasaWind.averageWindSpeed.toFixed(1)} ${nasaWind.unit}`} 
+            />
+          )}
           {forecast.minTemp !== undefined && forecast.maxTemp !== undefined && (
             <Stat
               label="Range"
